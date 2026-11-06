@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario Interactivo: LIDEI 2022 – Liderazgo Directivo en Iberoamérica</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-dark: #1e293b;
+            --accent: #2563eb;
+            --success: #16a34a;
+            --error: #dc2626;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            display: none;
+        }
+
+        .question-card.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-number {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .question-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            font-size: 1rem;
+        }
+
+        .option-label:hover {
+            border-color: var(--accent);
+            background: #f1f5f9;
+        }
+
+        .option-label input {
+            margin-right: 15px;
+            accent-color: var(--accent);
+            transform: scale(1.2);
+        }
+
+        .option-label.selected {
+            border-color: var(--accent);
+            background: #eff6ff;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        button {
+            padding: 10px 22px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        /* Resultados */
+        #results-screen {
+            display: none;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        .score-circle .score-num {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .score-circle .score-total {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+
+        .badge-excelente { background: #dcfce7; color: #15803d; }
+        .badge-bueno { background: #e0f2fe; color: #0369a1; }
+        .badge-regular { background: #fef9c3; color: #a16207; }
+        .badge-reforzamiento { background: #fee2e2; color: #b91c1c; }
+
+        .review-section {
+            margin-top: 30px;
+        }
+
+        .review-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .review-item {
+            background: #f8fafc;
+            border-left: 5px solid var(--border-color);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 15px;
+        }
+
+        .review-item.correct { border-left-color: var(--success); background: #f0fdf4; }
+        .review-item.incorrect { border-left-color: var(--error); background: #fef2f2; }
+
+        .review-question {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-dark);
+        }
+
+        .review-details {
+            font-size: 0.95rem;
+            display: grid;
+            gap: 4px;
+        }
+
+        .justification {
+            margin-top: 8px;
+            font-style: italic;
+            color: #475569;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .restart-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>LIDEI 2022</h1>
+        <p>Cuestionario Interactivo – Liderazgo Directivo en Iberoamérica</p>
+    </header>
+
+    <div class="content">
+        <!-- Contenedor del Cuestionario -->
+        <div id="quiz-screen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            
+            <div id="questions-container">
+                <!-- Las preguntas se inyectarán dinámicamente mediante JavaScript -->
+            </div>
+
+            <div class="nav-buttons">
+                <button type="button" class="btn-secondary" id="prev-btn" onclick="prevQuestion()" style="visibility: hidden;">Anterior</button>
+                <button type="button" class="btn-primary" id="next-btn" onclick="nextQuestion()">Siguiente</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Resultados -->
+        <div id="results-screen">
+            <div class="results-header">
+                <h2>Resultados de la Evaluación</h2>
+                <div class="score-circle">
+                    <span class="score-num" id="final-score">0</span>
+                    <span class="score-total">/ 30</span>
+                </div>
+                <p>Porcentaje obtenido: <strong id="final-percentage">0%</strong></p>
+                <div id="badge-container"></div>
+            </div>
+
+            <div class="review-section">
+                <h3>Detalle y Justificación de Respuestas</h3>
+                <div id="review-list">
+                    <!-- Detalle generado por JS -->
+                </div>
+            </div>
+
+            <div class="restart-container">
+                <button type="button" class="btn-primary" onclick="restartQuiz()">Reiniciar Cuestionario</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Base de datos de preguntas original
+    const originalQuestions = [
+        {
+            id: 1,
+            pregunta: "¿Qué significa la sigla LIDEI 2022?",
+            opciones: [
+                "A) Liderazgo Institucional y Desarrollo Educativo Internacional.",
+                "B) Liderazgo Directivo en Iberoamérica.",
+                "C) Lineamientos de Dirección Educativa Institucional.",
+                "D) Liderazgo Democrático e Innovación Educativa."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "LIDEI 2022 es el estudio que analiza las políticas y prácticas relacionadas con le liderazgo y la función directiva en los centros educativos de Iberoamérica."
+        },
+        {
+            id: 2,
+            pregunta: "¿Qué instituciones supervisaron la elaboración del estudio LIDEI 2022?",
+            opciones: [
+                "A) UNESCO y UNICEF.",
+                "B) CEPAL y Banco Mundial.",
+                "C) OEI e INEE de España.",
+                "D) OEA y BID."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "El documento fue elaborado bajo la supervisión de la Organización de Estados Iberoamericanos (OEI) y el Instituto Nacional de Evaluación Educativa (INEE) de España."
+        },
+        {
+            id: 3,
+            pregunta: "¿Quiénes realizaron el estudio LIDEI 2022?",
+            opciones: [
+                "A) José Augusto Pacheco y Consuelo Vélaz-de-Medrano Ureta.",
+                "B) Michael Fullan y Andy Hargreaves.",
+                "C) Paulo Freire y Philippe Perrenoud.",
+                "D) John Dewey y Edgar Morin."
+            ],
+            respuestaCorrecta: 0, // Índice A
+            justificacion: "Estos autores realizaron el estudio bajo la supervisión de la OEI y el INEE. El cuestionario fue diseñado por ambas instituciones y los datos recopilados fueron analizados por el INEE."
+        },
+        {
+            id: 4,
+            pregunta: "¿Cuál es uno de los principales objetivos del estudio LIDEI 2022?",
+            opciones: [
+                "A) Establecer un sistema único de evaluación de estudiantes.",
+                "B) Fortalecer el liderazgo escolar y la función directiva para mejorar la calidad educativa.",
+                "C) Eliminar la autonomía de los centros educativos.",
+                "D) Sustituir la función de los docentes por equipos administrativos."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El estudio busca fortalecer el liderazgo escolar como herramienta central para mejorar la calidad de la educación y promover prácticas innovadoras en las políticas públicas educativas."
+        },
+        {
+            id: 5,
+            pregunta: "¿En cuántos capítulos principales está organizado el documento LIDEI 2022?",
+            opciones: [
+                "A) Dos capítulos.",
+                "B) Tres capítulos.",
+                "C) Cuatro capítulos.",
+                "D) Seis capítulos."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "El documento comprende cuatro capítulos: modelo de liderazgo, estudios de casos, diseño y resultados de la encuesta, y análisis de conclusiones, reflexiones y prospectiva. También incluye un anexo con el cuestionario."
+        },
+        {
+            id: 6,
+            pregunta: "¿Cuáles son los cuatro componentes del modelo de liderazgo propuesto en el documento?",
+            opciones: [
+                "A) Administrativo, económico, disciplinario y político.",
+                "B) Pedagógico, inclusivo, distribuido y contextualizado.",
+                "C) Curricular, financiero, institucional y comunitario.",
+                "D) Democrático, autoritario, normativo y evaluativo."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El modelo integra cuatro características fundamentales para desarrollar una dirección escolar orientada a la mejora de los aprendizajes, la equidad, la participación y las necesidades del contexto."
+        },
+        {
+            id: 7,
+            pregunta: "¿Cuál es la característica principal del liderazgo pedagógico?",
+            opciones: [
+                "A) Concentrarse exclusivamente en el cumplimiento de trámites administrativos.",
+                "B) Controlar permanentemente la asistencia de los estudiantes.",
+                "C) Orientar la gestión directiva hacia la enseñanza y la mejora de los aprendizajes.",
+                "D) Delegar todas las responsabilidades pedagógicas a los docentes."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "El liderazgo pedagógico coloca el aprendizaje del alumnado en el centro de la gestión escolar y promueve el acompañamiento y desarrollo profesional del profesorado."
+        },
+        {
+            id: 8,
+            pregunta: "¿Qué busca principalmente el liderazgo inclusivo?",
+            opciones: [
+                "A) Uniformar las características de todos los estudiantes.",
+                "B) Garantizar la equidad, la integración y la participación de todos los estudiantes.",
+                "C) Priorizar únicamente a los estudiantes con mejores calificaciones.",
+                "D) Separar a los estudiantes según sus capacidades."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El liderazgo inclusivo promueve la igualdad de oportunidades, el respeto a la diversidad y la eliminación de barreras que dificultan la participación y el aprendizaje."
+        },
+        {
+            id: 9,
+            pregunta: "¿Qué significa ejercer un liderazgo distribuido en una unidad educativa?",
+            opciones: [
+                "A) Concentrar todas las decisiones en el director.",
+                "B) Transferir toda la responsabilidad a los padres de familia.",
+                "C) Compartir responsabilidades y promover la participación de diferentes actores educativos.",
+                "D) Eliminar los órganos de participación y coordinación."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "El liderazgo distribuido reconoce que la conducción de una institución no depende exclusivamente del director, sino que puede desarrollarse mediante la participación y colaboración de diferentes integrantes de la comunidad educativa."
+        },
+        {
+            id: 10,
+            pregunta: "¿Qué implica el liderazgo contextualizado?",
+            opciones: [
+                "A) Aplicar las mismas estrategias en todas las instituciones educativas.",
+                "B) Considerar las características sociales, culturales, económicas y educativas del contexto.",
+                "C) Desarrollar la gestión sin tomar en cuenta las necesidades de los estudiantes.",
+                "D) Priorizar únicamente las disposiciones administrativas nacionales."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El liderazgo contextualizado reconoce que cada centro educativo tiene características y necesidades particulares que deben considerarse al planificar y tomar decisiones."
+        },
+        {
+            id: 11,
+            pregunta: "¿Cuál es la finalidad principal del segundo capítulo del documento?",
+            opciones: [
+                "A) Presentar los resultados de la evaluación de estudiantes.",
+                "B) Analizar casos nacionales de políticas y prácticas de liderazgo escolar.",
+                "C) Establecer los salarios de los directores.",
+                "D) Describir exclusivamente los sistemas de evaluación docente."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El segundo capítulo presenta experiencias y modelos de gestión y liderazgo escolar para identificar elementos que contribuyan al liderazgo pedagógico, inclusivo y distribuido."
+        },
+        {
+            id: 12,
+            pregunta: "¿Qué países se presentan como casos nacionales en el segundo capítulo?",
+            opciones: [
+                "A) Bolivia, Perú, Ecuador y Colombia.",
+                "B) Argentina, México, Uruguay y Paraguay.",
+                "C) Chile, Portugal, España y Brasil.",
+                "D) Costa Rica, Panamá, Cuba y Guatemala."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "El documento selecciona estos cuatro casos para analizar tendencias de cambio en sus sistemas educativos, a partir de estudios, propuestas y orientaciones normativas."
+        },
+        {
+            id: 13,
+            pregunta: "Según el análisis de los casos de Chile presentado en el documento, ¿qué condiciones favorecen el ejercicio de un liderazgo escolar efectivo?",
+            opciones: [
+                "A) Mayor control administrativo y menor participación docente.",
+                "B) Valoración social de los líderes, desarrollo profesional y apoyo para mejorar su gestión.",
+                "C) Eliminación de las responsabilidades pedagógicas del director.",
+                "D) Reducción de la autonomía institucional."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El análisis de los casos chilenos destaca que los líderes escolares necesitan un contexto apropiado, reconocimiento social, oportunidades de desarrollo profesional y apoyo para mejorar su gestión pedagógica y administrativa."
+        },
+        {
+            id: 14,
+            pregunta: "¿Cuál fue el propósito principal de la encuesta aplicada a los directores?",
+            opciones: [
+                "A) Determinar el rendimiento académico de los estudiantes.",
+                "B) Conocer la realidad escolar, las políticas y las prácticas de liderazgo desde la experiencia de los directores.",
+                "C) Evaluar exclusivamente el cumplimiento de horarios de los docentes.",
+                "D) Establecer un ranking internacional de unidades educativas."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El cuestionario permitió recoger información sobre las condiciones en las que los directores ejercen su función, sus posibilidades de actuación y las prácticas de liderazgo que desarrollan."
+        },
+        {
+            id: 15,
+            pregunta: "¿Cuántos directores participaron en la encuesta piloto del estudio?",
+            opciones: [
+                "A) 45 directores.",
+                "B) 60 directores.",
+                "C) 77 directores.",
+                "D) 100 directores."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "La encuesta piloto contó con la participación de 77 directores y directoras de Argentina, Chile y España."
+        },
+        {
+            id: 16,
+            pregunta: "¿Cómo se distribuyeron los 77 participantes de la encuesta piloto?",
+            opciones: [
+                "A) Argentina 26, Chile 15 y España 36.",
+                "B) Argentina 15, Chile 36 y España 26.",
+                "C) Argentina 36, Chile 26 y España 15.",
+                "D) Argentina 25, Chile 25 y España 27."
+            ],
+            respuestaCorrecta: 0, // Índice A
+            justificacion: "El documento registra 26 participantes de Argentina, 15 de Chile y 36 de España, sumando un total de 77 directores y directoras."
+        },
+        {
+            id: 17,
+            pregunta: "¿Por qué los resultados de la encuesta piloto no pueden considerarse representativos de todos los países de Iberoamérica?",
+            opciones: [
+                "A) Porque no participaron directores de centros educativos.",
+                "B) Porque se utilizó una muestra incidental que no representa a la totalidad de los directores ni de los centros educativos.",
+                "C) Porque el cuestionario no contenía preguntas relacionadas con liderazgo.",
+                "D) Porque solamente participaron autoridades ministeriales."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El documento advierte expresamente que la muestra no es representativa. Sin embargo, permitió identificar tendencias y formular hipótesis para futuros estudios más amplios."
+        },
+        {
+            id: 18,
+            pregunta: "¿Cuáles son las cuatro dimensiones principales utilizadas para analizar las políticas y prácticas de liderazgo escolar?",
+            opciones: [
+                "A) Planificación, organización, ejecución y control.",
+                "B) Responsabilidades, autonomía, promoción del liderazgo distribuido y atractivo de la dirección escolar.",
+                "C) Infraestructura, presupuesto, matrícula y rendimiento académico.",
+                "D) Evaluación, supervisión, disciplina y administración."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "Estas cuatro dimensiones estructuran el análisis del estudio y permiten examinar las condiciones normativas y las experiencias de los directores."
+        },
+        {
+            id: 19,
+            pregunta: "¿Qué analiza principalmente la primera dimensión del estudio?",
+            opciones: [
+                "A) Las responsabilidades y funciones del director o directora escolar.",
+                "B) La infraestructura y el equipamiento de las instituciones.",
+                "C) La alimentación complementaria escolar.",
+                "D) Los resultados de las pruebas internacionales."
+            ],
+            respuestaCorrecta: 0, // Índice A
+            justificacion: "Esta dimensión examina la definición de las responsabilidades directivas, priorizando las funciones vinculadas al liderazgo pedagógico, inclusivo y distribuido."
+        },
+        {
+            id: 20,
+            pregunta: "¿Qué aspecto estudia principalmente la segunda dimensión?",
+            opciones: [
+                "A) La cantidad de estudiantes matriculados.",
+                "B) La autonomía del director para tomar decisiones y gestionar el centro educativo.",
+                "C) La distribución del calendario escolar.",
+                "D) La participación exclusiva de las autoridades municipales."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "La segunda dimensión analiza el margen de autonomía que tienen los directores para desarrollar distintas tareas, tomar decisiones y ejercer su liderazgo dentro de las posibilidades establecidas."
+        },
+        {
+            id: 21,
+            pregunta: "Según el documento, ¿qué dificultad administrativa afecta la autonomía de los directores?",
+            opciones: [
+                "A) La ausencia de estudiantes en las aulas.",
+                "B) La complejidad y larga duración de los procesos administrativos.",
+                "C) La falta de actividades deportivas.",
+                "D) La existencia de órganos de participación escolar."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El estudio señala que los procedimientos administrativos complejos y prolongados pueden retrasar decisiones, proyectos y objetivos institucionales, debilitando la autonomía directiva."
+        },
+        {
+            id: 22,
+            pregunta: "¿Qué analiza la tercera dimensión del estudio?",
+            opciones: [
+                "A) La promoción del liderazgo distribuido dentro de los centros educativos.",
+                "B) La selección de estudiantes para actividades deportivas.",
+                "C) La administración de recursos económicos exclusivamente.",
+                "D) La evaluación de los resultados académicos individuales."
+            ],
+            respuestaCorrecta: 0, // Índice A
+            justificacion: "Esta dimensión examina si se permite distribuir el liderazgo, si existen órganos de participación y coordinación y si se reconocen figuras complementarias de liderazgo en las instituciones."
+        },
+        {
+            id: 23,
+            pregunta: "¿Qué porcentaje de directores de Chile manifestó permitir bastante o mucho la distribución del liderazgo dentro de su centro educativo?",
+            opciones: [
+                "A) 60 %.",
+                "B) 75 %.",
+                "C) 91 %.",
+                "D) 100 %."
+            ],
+            respuestaCorrecta: 3, // Índice D
+            justificacion: "En el gráfico 34 del documento, el 91 % de Argentina, el 100 % de Chile y el 92 % de España declararon permitir bastante o mucho la distribución del liderazgo. Estos porcentajes corresponden a los participantes de la encuesta piloto, no a la totalidad de los directores de cada país."
+        },
+        {
+            id: 24,
+            pregunta: "¿Qué analiza la cuarta dimensión del estudio?",
+            opciones: [
+                "A) El atractivo de la dirección escolar como profesión.",
+                "B) La cantidad de asignaturas del currículo.",
+                "C) La infraestructura de los centros educativos.",
+                "D) La evaluación del aprendizaje de los estudiantes."
+            ],
+            respuestaCorrecta: 0, // Índice A
+            justificacion: "Esta dimensión examina los factores que permiten atraer y mantener profesionales cualificados en los cargos directivos, incluyendo la profesionalización, los criterios de acceso, las condiciones salariales y el desarrollo profesional."
+        },
+        {
+            id: 25,
+            pregunta: "¿Qué importancia tiene la formación profesional de los directores escolares según el enfoque del documento?",
+            opciones: [
+                "A) Es secundaria porque la experiencia administrativa es suficiente.",
+                "B) Permite fortalecer las competencias para ejercer un liderazgo pedagógico, inclusivo y distribuido.",
+                "C) Solo es necesaria al momento de ingresar al cargo.",
+                "D) Debe enfocarse exclusivamente en procedimientos burocráticos."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El desarrollo profesional de los directores es esencial para mejorar su práctica de liderazgo, fortalecer la colaboración y responder a las necesidades de la comunidad educativa."
+        },
+        {
+            id: 26,
+            pregunta: "¿Qué relación establece el documento entre normativa educativa y realidad escolar?",
+            opciones: [
+                "A) La normativa y la realidad escolar siempre son idénticas.",
+                "B) La normativa no tiene ninguna relación con la dirección escolar.",
+                "C) Es necesario analizar las diferencias entre las disposiciones normativas y las condiciones reales en las que trabajan los directores.",
+                "D) La realidad escolar debe adaptarse exclusivamente a las tareas administrativas."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "El estudio busca conocer cómo las normas establecen las funciones y posibilidades de los directores y cómo estas se desarrollan en la práctica cotidiana de los centros educativos."
+        },
+        {
+            id: 27,
+            pregunta: "¿Cuál es una conclusión importante del capítulo cuarto del documento?",
+            opciones: [
+                "A) Todos los países han alcanzado plenamente el modelo de liderazgo propuesto.",
+                "B) El liderazgo pedagógico, inclusivo y distribuido constituye un horizonte de mejora que todavía requiere avances.",
+                "C) La dirección escolar debe limitarse a cumplir funciones administrativas.",
+                "D) La participación de la comunidad educativa no influye en la gestión escolar."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El capítulo cuarto reconoce avances, pero también señala que existen diferencias y aspectos pendientes de fortalecer en las políticas y prácticas de liderazgo escolar de los países participantes."
+        },
+        {
+            id: 28,
+            pregunta: "¿Qué importancia tiene el liderazgo distribuido para mejorar la gestión de una unidad educativa?",
+            opciones: [
+                "A) Reduce la responsabilidad del director hasta eliminarla.",
+                "B) Permite concentrar las decisiones en una sola persona.",
+                "C) Favorece la colaboración, la participación y la responsabilidad compartida entre los actores educativos.",
+                "D) Evita que los docentes participen en los proyectos institucionales."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "El liderazgo distribuido permite aprovechar las capacidades de diferentes integrantes de la comunidad educativa y fortalecer la construcción colectiva de proyectos y decisiones institucionales."
+        },
+        {
+            id: 29,
+            pregunta: "¿Cuál de las siguientes acciones representa mejor la aplicación del liderazgo pedagógico en una unidad educativa?",
+            opciones: [
+                "A) Priorizar exclusivamente la elaboración de informes administrativos.",
+                "B) Realizar acompañamiento pedagógico, seguimiento a la planificación docente y análisis de los aprendizajes.",
+                "C) Delegar toda la responsabilidad educativa a los padres de familia.",
+                "D) Limitar la gestión a controlar el horario de ingreso y salida."
+            ],
+            respuestaCorrecta: 1, // Índice B
+            justificacion: "El liderazgo pedagógico se concreta en acciones orientadas a fortalecer la enseñanza, acompañar el trabajo docente y mejorar los aprendizajes de los estudiantes."
+        },
+        {
+            id: 30,
+            pregunta: "¿Cuál sería la aplicación más completa del modelo LIDEI 2022 en la dirección de una unidad educativa?",
+            opciones: [
+                "A) Concentrar las actividades en la administración y el cumplimiento de informes.",
+                "B) Desarrollar una gestión basada únicamente en el control disciplinario.",
+                "C) Promover una gestión que integre la mejora pedagógica, la inclusión, la participación compartida y la atención al contexto institucional.",
+                "D) Delegar todas las funciones a los asesores de curso y docentes."
+            ],
+            respuestaCorrecta: 2, // Índice C
+            justificacion: "Esta alternativa integra los cuatro componentes del modelo LIDEI: liderazgo pedagógico, inclusivo, distribuido y contextualizado. Representa una dirección escolar integral orientada a la calidad y la equidad educativa."
+        }
+    ];
+
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = {};
+
+    // Función para barajar un arreglo (Fisher-Yates)
+    function shuffleArray(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function initQuiz() {
+        // Barajar preguntas aleatoriamente al iniciar
+        questions = shuffleArray(originalQuestions);
+        currentQuestionIndex = 0;
+        userAnswers = {};
+        
+        document.getElementById('quiz-screen').style.display = 'block';
+        document.getElementById('results-screen').style.display = 'none';
+        
+        renderQuestionsDOM();
+        showQuestion(0);
+    }
+
+    function renderQuestionsDOM() {
+        const container = document.getElementById('questions-container');
+        container.innerHTML = '';
+
+        questions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = `question-card ${index === 0 ? 'active' : ''}`;
+            card.id = `question-${index}`;
+
+            let optionsHtml = '';
+            q.opciones.forEach((opt, optIndex) => {
+                const isSelected = userAnswers[index] === optIndex ? 'selected' : '';
+                const checkedAttr = userAnswers[index] === optIndex ? 'checked' : '';
+                optionsHtml += `
+                    <label class="option-label ${isSelected}" onclick="selectOption(${index}, ${optIndex})">
+                        <input type="radio" name="question-${index}" value="${optIndex}" ${checkedAttr}>
+                        <span>${opt}</span>
+                    </label>
+                `;
+            });
+
+            card.innerHTML = `
+                <div class="question-number">Pregunta ${index + 1} de 30</div>
+                <div class="question-title">${q.pregunta}</div>
+                <div class="options-list">
+                    ${optionsHtml}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function selectOption(qIndex, optIndex) {
+        userAnswers[qIndex] = optIndex;
+        
+        // Actualizar clases visuales en las opciones de esta pregunta
+        const card = document.getElementById(`question-${qIndex}`);
+        const labels = card.querySelectorAll('.option-label');
+        labels.forEach((lbl, idx) => {
+            if (idx === optIndex) {
+                lbl.classList.add('selected');
+                lbl.querySelector('input').checked = true;
+            } else {
+                lbl.classList.remove('selected');
+            }
+        });
+    }
+
+    function showQuestion(index) {
+        const cards = document.querySelectorAll('.question-card');
+        cards.forEach((card, idx) => {
+            if (idx === index) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+
+        currentQuestionIndex = index;
+
+        // Actualizar barra de progreso
+        const progressPercent = ((index + 1) / questions.length) * 100;
+        document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+
+        // Botones de navegación
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
+        
+        if (index === questions.length - 1) {
+            nextBtn.textContent = 'Finalizar Evaluación';
+            nextBtn.setAttribute('onclick', 'finishQuiz()');
+        } else {
+            nextBtn.textContent = 'Siguiente';
+            nextBtn.setAttribute('onclick', 'nextQuestion()');
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < questions.length - 1) {
+            showQuestion(currentQuestionIndex + 1);
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            // Asegurar que el botón siguiente mantenga su acción correcta si retrocede desde el final
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.textContent = 'Siguiente';
+            nextBtn.setAttribute('onclick', 'nextQuestion()');
+            
+            showQuestion(currentQuestionIndex - 1);
+        }
+    }
+
+    function finishQuiz() {
+        // Verificar respuestas y calcular puntaje
+        let score = 0;
+        let reviewHtml = '';
+
+        questions.forEach((q, index) => {
+            const userAns = userAnswers[index];
+            const isCorrect = userAns === q.respuestaCorrecta;
+            if (isCorrect) score++;
+
+            const userAnsText = userAns !== undefined ? q.opciones[userAns] : "Sin responder";
+            const correctAnsText = q.opciones[q.respuestaCorrecta];
+
+            reviewHtml += `
+                <div class="review-item ${isCorrect ? 'correct' : 'incorrect'}">
+                    <div class="review-question">P.${index + 1}: ${q.pregunta}</div>
+                    <div class="review-details">
+                        <div><strong>Tu respuesta:</strong> ${userAnsText}</div>
+                        <div><strong>Respuesta correcta:</strong> ${correctAnsText}</div>
+                        <div class="justification"><strong>Justificación:</strong> ${q.justificacion}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        const percentage = Math.round((score / 30) * 100);
+        
+        // Determinar valoración del nivel de conocimiento
+        let badgeText = "";
+        let badgeClass = "";
+        if (score >= 27) {
+            badgeText = "Excelente";
+            badgeClass = "badge-excelente";
+        } else if (score >= 21) {
+            badgeText = "Bueno";
+            badgeClass = "badge-bueno";
+        } else if (score >= 15) {
+            badgeText = "Regular";
+            badgeClass = "badge-regular";
+        } else {
+            badgeText = "Necesita reforzamiento";
+            badgeClass = "badge-reforzamiento";
+        }
+
+        // Renderizar pantalla de resultados
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('final-percentage').textContent = `${percentage}%`;
+        document.getElementById('badge-container').innerHTML = `<span class="badge ${badgeClass}">${badgeText}</span>`;
+        document.getElementById('review-list').innerHTML = reviewHtml;
+        document.getElementById('results-screen').style.display = 'block';
+
+        // Scroll hacia arriba
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function restartQuiz() {
+        initQuiz();
+    }
+
+    // Inicializar al cargar la página
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
